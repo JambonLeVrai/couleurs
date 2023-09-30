@@ -1,7 +1,7 @@
 #include "wave_effect.h"
 
-WaveEffect::WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF color):
-    prop_dir(vec_from_angle(prop_direction)), wavefront_dir_90deg(vec_from_angle(wavefront_direction + 90.)), _color(color) {
+WaveEffect::WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF wave_color, ColorF fixed_color):
+    prop_dir(vec_from_angle(prop_direction)), wavefront_dir_90deg(vec_from_angle(wavefront_direction + 90.)), _wave_color(wave_color), _fixed_color(fixed_color) {
     Vec2f total_travel = prop_dir * duration * speed;
     Serial.println(total_travel.x());
     Serial.println(total_travel.y());
@@ -14,7 +14,10 @@ WaveEffect::WaveEffect(float prop_direction, float wavefront_direction, float wa
     _duration = duration;
 }
 
-void WaveEffect::increment() {
+WaveEffect::WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF wave_color):
+    WaveEffect(prop_direction, wavefront_direction, wave_width, speed, duration, rectangle_size, wave_color, ColorF(0., 0., 0.)) {}
+
+void WaveEffect::refresh() {
     float current_time = (float)millis() / 1000.;
     float progression = current_time / _duration;
     float actual_distance = (progression - floorf(progression)) * _speed * _duration;
@@ -28,6 +31,6 @@ float WaveEffect::coeff_formula(float distance) {
 uint32_t WaveEffect::get_color(Vec2f pos) {
     float distance_to_wavefront = abs(Vec2f::dot(pos - current_pos, wavefront_dir_90deg));
     float coeff = coeff_formula(distance_to_wavefront);
-    ColorF actual_color = _color * coeff;
+    ColorF actual_color = _wave_color * coeff + _fixed_color;
     return color_to_rgb(actual_color);
 }

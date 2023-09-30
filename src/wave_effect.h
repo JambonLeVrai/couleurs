@@ -8,7 +8,8 @@
 
 class WaveEffect: public Effect {
     public:
-        WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF color);
+        WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF wave_color, ColorF fixed_color);
+        WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF wave_color);
         void refresh();
         uint32_t get_color(Vec2f pos);
         float coeff_formula(float distance);
@@ -19,7 +20,7 @@ class WaveEffect: public Effect {
         Vec2f start_pos = Vec2f(0., 0.);
         Vec2f current_pos = Vec2f(0., 0.);
         float started_timer;
-        ColorF _color;
+        ColorF _wave_color, _fixed_color;
         float width, _speed, _duration;
 };
 

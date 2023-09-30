@@ -28,6 +28,11 @@ class Vec2 {
         Vec2<T> operator/(T const& a) const {
             return Vec2<T>(_x/a, _y/a);
         }
+
+        void operator+=(Vec2<T> const& a) {
+            _x += a._x;
+            _y += a._y;
+        }
         
         T x() const { return _x; }
         T y() const { return _y; }
@@ -63,6 +68,12 @@ class Vec3 {
         Vec3<T> operator/(T const& a) const {
             return Vec3<T>(_x/a, _y/a, _z/a);
         }
+
+        void operator+=(Vec3<T> const& a) {
+            _x += a._x;
+            _y += a._y;
+            _z += a._z;
+        }
         
         T x() const { return _x; }
         T y() const { return _y; }
@@ -87,6 +98,7 @@ float radians_to_deg(float radians);
 Vec2f vec_from_angle(float deg);
 
 ColorF color_from_rgb(uint8_t R, uint8_t G, uint8_t B);
+uint8_t saturate(int i);
 uint32_t color_to_rgb(ColorF const& color);
 
 #endif
