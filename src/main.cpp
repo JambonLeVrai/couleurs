@@ -33,11 +33,11 @@ std::vector<ColorF>* colors = new std::vector<ColorF>({
 //Effect* effect = new WaveEffect(-45., 45., 0.25, 3., 5., Vec2f(3., 3.), color_from_rgb(185, 65, 0));
 //Effect* effect = new CycleEffect(colors, 4000.);
 //Effect* effect = new CircularWaveEffect(1., 5., 3., Vec2f(1.5, 0.5), color_from_rgb(185, 65, 0), color_from_rgb(0, 0, 0));
-Effect* effect = new CompoundEffect(std::vector<Effect*>({
+/*Effect* effect = new CompoundEffect(std::vector<Effect*>({
   new WaveEffect(-45., 45., 0.25, 3., 5., Vec2f(3., 3.), color_from_rgb(140, 0, 0)),
   new CircularWaveEffect(1., 5., 3., Vec2f(1.5, 0.5), color_from_rgb(0, 140, 20), color_from_rgb(0, 0, 0))
-}));
-//Effect* effect = new WaveEffect(-45., 45., 0.25, 3., 5., Vec2f(3., 3.), color_from_rgb(140, 0, 0));
+}));*/
+Effect* effect = new WaveEffect(-45., 45., 0.5, 3., 5., Vec2f(3., 3.), color_from_rgb(140, 0, 0), color_from_rgb(0, 140, 0));
 
 void colorSet(uint32_t c, uint8_t wait);
 

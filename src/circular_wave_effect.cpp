@@ -13,7 +13,8 @@ void CircularWaveEffect::refresh() {
 
 uint32_t CircularWaveEffect::get_color(Vec2f pos) {
     float ring_dist = min(abs(Vec2f::sq_norm(pos - _origin) - current_radius), abs(Vec2f::sq_norm(pos - _origin) - current_radius + max_radius));
-    ColorF actual_color = _wave_color * coeff_formula(ring_dist) + _fixed_color;
+    float coeff = coeff_formula(ring_dist);
+    ColorF actual_color = _wave_color * coeff + _fixed_color * (1 - coeff);
     return color_to_rgb(actual_color);
 }
 
