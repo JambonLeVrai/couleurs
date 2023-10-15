@@ -15,3 +15,7 @@ void CycleEffect::refresh() {
 uint32_t CycleEffect::get_color(Vec2f pos) {
     return color_to_rgb(current_color);
 }
+
+CycleEffect::~CycleEffect() {
+    delete _colors;
+}

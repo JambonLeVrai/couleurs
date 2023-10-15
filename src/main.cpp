@@ -1,15 +1,23 @@
 #include <Adafruit_NeoPixel.h>
 #include <ArduinoSTL.h>
+#include <SPI.h>
 #include "tools.h"
 #include "wave_effect.h"
 #include "cycle_effect.h"
 #include "circular_wave_effect.h"
 #include "compound_effect.h"
+#include "SPI_processor.h"
 
 #define PIN 2
 #define LED_COUNT 8
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, PIN, NEO_GRB + NEO_KHZ800);
+SPIProcessor spi_processor;
+
+char buf [100];
+uint8_t buff;
+volatile byte pos;
+volatile boolean process_it;
 
 Vec2f key_coords[8] = {
   Vec2f(0., 0.),
@@ -38,14 +46,36 @@ std::vector<ColorF>* colors = new std::vector<ColorF>({
   new CircularWaveEffect(1., 5., 3., Vec2f(1.5, 0.5), color_from_rgb(0, 140, 20), color_from_rgb(0, 0, 0))
 }));*/
 Effect* effect = new WaveEffect(-45., 45., 0.5, 3., 5., Vec2f(3., 3.), color_from_rgb(140, 0, 0), color_from_rgb(0, 140, 0));
+//Effect* effect = new FixedEffect(150, 72, 12);
 
 void colorSet(uint32_t c, uint8_t wait);
 
+// SPI interrupt routine
+ISR (SPI_STC_vect)
+{
+  buff = SPDR;
+  if(spi_processor.receiveData(buff)) {
+    process_it = true;
+  }
+}
+
 void setup() {
   Serial.begin(9600);
+  Serial.println("hihi");
+
+  // have to send on master in, *slave out*
+  pinMode(SS, INPUT_PULLUP);
+  pinMode(MOSI, OUTPUT);
+  pinMode(SCK, INPUT);
+  SPCR |= _BV(SPE);
+  SPI.attachInterrupt();  //allows SPI interrupt
+
   strip.begin();
 
   strip.show(); // Initialize all pixels to 'off'
+
+  pos = 0;
+  process_it = false;
 }
 
 void loop() {
@@ -54,5 +84,14 @@ void loop() {
     strip.setPixelColor(i, effect->get_color(key_coords[i]));
   }
   strip.show();
-  delay(50.);
+
+  if (process_it)
+  {
+    delete effect;
+    effect = spi_processor.getEffect();
+    effect->refresh();
+    process_it = false;
+  }  // end of flag set
+    
+  delay(5);
 }
