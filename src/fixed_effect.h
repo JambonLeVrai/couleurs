@@ -10,7 +10,7 @@ struct FixedEffectData {
 
 class FixedEffect: Effect {
     public: 
-        FixedEffect(uint8_t R, uint8_t G, uint8_t B);
+        FixedEffect(FixedEffectData data);
         FixedEffect(ColorF col);
         uint32_t get_color(Vec2f pos);
 

@@ -6,8 +6,25 @@
 #include <Adafruit_NeoPixel.h>
 #include <math.h>
 
+struct WaveEffectData {
+    float prop_direction;
+    float wavefront_direction;
+    float wave_width;
+    float speed;
+    float duration;
+    float rectangle_size_x;
+    float rectangle_size_y;
+    uint8_t wave_color_r;
+    uint8_t wave_color_g;
+    uint8_t wave_color_b;
+    uint8_t fixed_color_r;
+    uint8_t fixed_color_g;
+    uint8_t fixed_color_b;
+};
+
 class WaveEffect: public Effect {
     public:
+        WaveEffect(WaveEffectData data);
         WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF wave_color, ColorF fixed_color);
         WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF wave_color);
         void refresh();

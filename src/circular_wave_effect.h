@@ -4,8 +4,16 @@
 #include "tools.h"
 #include "effect.h"
 
+struct CircularWaveEffectData {
+    float wave_width, speed, duration;
+    float origin_x, origin_y;
+    uint8_t wave_r, wave_g, wave_b;
+    uint8_t fixed_r, fixed_g, fixed_b;
+};
+
 class CircularWaveEffect: public Effect {
     public:
+    CircularWaveEffect(CircularWaveEffectData data);
     CircularWaveEffect(float wave_width, float speed, float duration, Vec2f origin, ColorF wave_color, ColorF fixed_color);
     void refresh();
     uint32_t get_color(Vec2f pos);

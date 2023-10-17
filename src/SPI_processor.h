@@ -27,6 +27,8 @@ class SPIProcessor {
     bool receiveData(uint8_t byte);
     bool setNewEffect(uint8_t byte);
     bool processFixedEffect(uint8_t byte);
+    bool processCircularWaveEffect(uint8_t byte);
+    bool processCycleEffect(uint8_t byte);
 
     Effect* getEffect();
 
@@ -36,6 +38,9 @@ class SPIProcessor {
     uint8_t current_byte;
     uint8_t state;
     FixedEffectData current_fixed_effect_data;
+    CycleEffectData current_cycle_effect_data;
+    CircularWaveEffectData current_circular_wave_effect_data;
+    WaveEffectData current_wave_effect_data;
 };
 
 #endif

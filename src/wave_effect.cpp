@@ -1,5 +1,18 @@
 #include "wave_effect.h"
 
+WaveEffect::WaveEffect(WaveEffectData data): 
+WaveEffect( 
+    data.prop_direction, 
+    data.wavefront_direction, 
+    data.wave_width, 
+    data.speed, 
+    data.duration, 
+    Vec2f(data.rectangle_size_x, data.rectangle_size_y), 
+    color_from_rgb(data.wave_color_r, data.wave_color_g, data.wave_color_b),
+    color_from_rgb(data.fixed_color_r, data.fixed_color_g, data.fixed_color_b)
+)
+{}
+
 WaveEffect::WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF wave_color, ColorF fixed_color):
     prop_dir(vec_from_angle(prop_direction)), wavefront_dir_90deg(vec_from_angle(wavefront_direction + 90.)), _wave_color(wave_color), _fixed_color(fixed_color) {
     Vec2f total_travel = prop_dir * duration * speed;

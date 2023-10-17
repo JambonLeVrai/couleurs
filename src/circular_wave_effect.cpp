@@ -1,5 +1,10 @@
 #include "circular_wave_effect.h"
 
+CircularWaveEffect::CircularWaveEffect(CircularWaveEffectData data) : _wave_width(data.wave_width), _speed(data.speed), _duration(data.duration), _origin(Vec2f(data.origin_x, data.origin_y)), 
+_wave_color(color_from_rgb(data.wave_r, data.wave_g, data.wave_b)), _fixed_color(color_from_rgb(data.fixed_r, data.fixed_g, data.fixed_b)), current_radius(0.) {
+    max_radius = _speed * _duration;
+}
+
 CircularWaveEffect::CircularWaveEffect(float wave_width, float speed, float duration, Vec2f origin, ColorF wave_color, ColorF fixed_color): 
     _wave_width(wave_width*wave_width), _speed(speed), _duration(duration), _origin(origin), _wave_color(wave_color), _fixed_color(fixed_color), current_radius(0.) {
     max_radius = _speed * _duration;
