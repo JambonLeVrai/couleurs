@@ -2,6 +2,12 @@
 
 CompoundEffect::CompoundEffect(std::vector<Effect*> effects): _effects(effects) {}
 
+CompoundEffect::~CompoundEffect() {
+    for(int i=0;i<_effects.size();i++) {
+        delete _effects.at(i);
+    }
+}
+
 void CompoundEffect::refresh() {
     for(auto& it: _effects)
         it->refresh();

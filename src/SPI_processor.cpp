@@ -28,35 +28,99 @@ bool SPIProcessor::receiveData(uint8_t byte) {
     return false;
 }
 
-bool SPIProcessor::processCycleEffect(uint8_t byte) {
-    if(current_byte == 0) {
+bool SPIProcessor::processCycleEffect(uint8_t byte, uint8_t& current) {
+    if(current == 0) {
         current_cycle_effect_data.nb_colors = byte;
         current_cycle_effect_data.colors = new std::vector<ColorF>();
-        current_byte++;
+        current++;
         return false;
     }
-    if(current_byte <= 4 && current_byte >= 1) {
-        *((uint8_t*)&current_cycle_effect_data.color_duration + (current_byte - 1)) = byte;
-        current_byte++;
+    if(current <= 4 && current >= 1) {
+        *((uint8_t*)&current_cycle_effect_data.color_duration + (current - 1)) = byte;
+        current++;
         return false;
     }
 
-    if((current_byte-1) % 3 == 0) {
+    if((current-5) % 3 == 0) {
         current_cycle_effect_data.cur_r = byte;
-        current_byte++;
+        current++;
         return false;
     }
-    else if((current_byte-1) % 3 == 1) {
+    else if((current-5) % 3 == 1) {
         current_cycle_effect_data.cur_g = byte;
-        current_byte++;
+        current++;
         return false;
     }
     else {
         current_cycle_effect_data.cur_b = byte;
-        current_byte++;
+        current++;
         current_cycle_effect_data.colors->push_back(color_from_rgb(current_cycle_effect_data.cur_r, current_cycle_effect_data.cur_g, current_cycle_effect_data.cur_b));
 
-        return (current_byte-1) / 3 >= current_cycle_effect_data.nb_colors;
+        return (current-5) / 3 >= current_cycle_effect_data.nb_colors-1;
+    }
+}
+
+bool SPIProcessor::processFixedEffect(uint8_t byte, uint8_t& current) {
+    *((uint8_t*)(&current_fixed_effect_data) + current) = byte;
+    current++;
+    return current == sizeof(FixedEffectData);
+}
+
+bool SPIProcessor::processWaveEffect(uint8_t byte, uint8_t& current) {
+    *((uint8_t*)(&current_wave_effect_data) + current) = byte;
+    current++;
+    return (current == sizeof(WaveEffectData));
+}
+
+bool SPIProcessor::processCircularWaveEffect(uint8_t byte, uint8_t& current) {
+    *((uint8_t*)(&current_circular_wave_effect_data) + current) = byte;
+    current++;
+    return (current_byte == sizeof(CircularWaveEffectData));
+}
+
+
+bool SPIProcessor::processCompoundEffect(uint8_t byte) {
+    if(current_byte == 0) {
+        current_compound_effect_data.nb_effects = byte;
+        current_compound_effect_data.current_effect_type = EMPTY_EFFECT;
+        current_compound_effect_data.current_effect = 0;
+        return false;
+    }
+
+    switch(current_compound_effect_data.current_effect_type) {
+        case EMPTY_EFFECT:
+            current_compound_effect_data.current_effect_type = byte;
+            current_compound_effect_data.local_byte = 0;
+            return false;
+            break;
+        case EFFECT_FIXED:
+            if(processFixedEffect(byte, current_compound_effect_data.local_byte)) {
+                current_compound_effect_data.effects.push_back(getRawEffect(current_compound_effect_data.current_effect_type));
+                current_compound_effect_data.current_effect_type = EMPTY_EFFECT;
+                return ++current_compound_effect_data.current_effect == current_compound_effect_data.nb_effects;
+            }
+            break;
+        case EFFECT_CYCLE:
+            if(processCycleEffect(byte, current_compound_effect_data.local_byte)) {
+                current_compound_effect_data.effects.push_back(getRawEffect(current_compound_effect_data.current_effect_type));
+                current_compound_effect_data.current_effect_type = EMPTY_EFFECT;
+                return ++current_compound_effect_data.current_effect == current_compound_effect_data.nb_effects;
+            }
+            break;
+        case EFFECT_WAVE:
+            if(processWaveEffect(byte, current_compound_effect_data.local_byte)) {
+                current_compound_effect_data.effects.push_back(getRawEffect(current_compound_effect_data.current_effect_type));
+                current_compound_effect_data.current_effect_type = EMPTY_EFFECT;
+                return ++current_compound_effect_data.current_effect == current_compound_effect_data.nb_effects;
+            }
+            break;
+        case EFFECT_CIRCULAR_WAVE:
+            if(processCircularWaveEffect(byte, current_compound_effect_data.local_byte)) {
+                current_compound_effect_data.effects.push_back(getRawEffect(current_compound_effect_data.current_effect_type));
+                current_compound_effect_data.current_effect_type = EMPTY_EFFECT;
+                return ++current_compound_effect_data.current_effect == current_compound_effect_data.nb_effects;
+            }
+            break;
     }
 }
 
@@ -67,45 +131,34 @@ bool SPIProcessor::setNewEffect(uint8_t byte) {
         return false;
     }
 
-    bool result;
     switch(effect) {
         case EFFECT_FIXED:
-            *((uint8_t*)(&current_fixed_effect_data) + current_byte) = byte;
-            current_byte++;
-            if (current_byte == sizeof(FixedEffectData)) {
-                Serial.println("Received a whole fixed effect data");
-                }
-            return (current_byte == sizeof(FixedEffectData));
+            return processFixedEffect(byte, current_byte);
             break;
 
         case EFFECT_CYCLE:
-            return processCycleEffect(byte);
+            return processCycleEffect(byte, current_byte);
             break;
         
         case EFFECT_WAVE:
-            *((uint8_t*)(&current_wave_effect_data) + current_byte) = byte;
-            current_byte++;
-            if(current_byte == sizeof(WaveEffectData)) {
-                Serial.println("Received a whole effect wave");
-            }
-            return (current_byte == sizeof(WaveEffectData));
+            return processWaveEffect(byte, current_byte);
             break;
 
         case EFFECT_CIRCULAR_WAVE:
-            *((uint8_t*)(&current_circular_wave_effect_data) + current_byte) = byte;
-            current_byte++;
-            if(current_byte == sizeof(CircularWaveEffectData)) {
-                Serial.println("Received a whole effect circular wave");
-            }
-            return (current_byte == sizeof(CircularWaveEffectData));
+            return processCircularWaveEffect(byte, current_byte);
+            break;
+
+        case EFFECT_COMPOUND:
+
             break;
     }
 
 }
 
-Effect* SPIProcessor::getEffect() {
+
+Effect* SPIProcessor::getRawEffect(uint8_t effect_type) {
     Effect* result;
-    switch(effect) {
+    switch(effect_type) {
         case EFFECT_FIXED:
             result = (Effect*)new FixedEffect(current_fixed_effect_data);
             break;
@@ -121,7 +174,16 @@ Effect* SPIProcessor::getEffect() {
         case EFFECT_CIRCULAR_WAVE:
             result = (Effect*)new CircularWaveEffect(current_circular_wave_effect_data);
             break;
+
+        case EFFECT_COMPOUND:
+            result = (Effect*)new CompoundEffect(current_compound_effect_data.effects);
+            break;
     }
+    return result;
+}
+
+Effect* SPIProcessor::getEffect() {
+    Effect* result = getRawEffect(effect);
     
     current_command = EMPTY_COMMAND;
     effect = EMPTY_EFFECT;

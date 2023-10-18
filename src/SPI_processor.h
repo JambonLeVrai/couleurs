@@ -26,11 +26,14 @@ class SPIProcessor {
     SPIProcessor();
     bool receiveData(uint8_t byte);
     bool setNewEffect(uint8_t byte);
-    bool processFixedEffect(uint8_t byte);
-    bool processCircularWaveEffect(uint8_t byte);
-    bool processCycleEffect(uint8_t byte);
+    bool processFixedEffect(uint8_t byte, uint8_t& current);
+    bool processCircularWaveEffect(uint8_t byte, uint8_t& current);
+    bool processWaveEffect(uint8_t byte, uint8_t& current);
+    bool processCycleEffect(uint8_t byte, uint8_t& current);
+    bool processCompoundEffect(uint8_t byte);
 
     Effect* getEffect();
+    Effect* getRawEffect(uint8_t effect_type);
 
     private:
     uint8_t current_command;
@@ -41,6 +44,7 @@ class SPIProcessor {
     CycleEffectData current_cycle_effect_data;
     CircularWaveEffectData current_circular_wave_effect_data;
     WaveEffectData current_wave_effect_data;
+    CompoundEffectData current_compound_effect_data;
 };
 
 #endif

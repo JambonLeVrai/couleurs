@@ -30,6 +30,8 @@ WaveEffect::WaveEffect(float prop_direction, float wavefront_direction, float wa
 WaveEffect::WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF wave_color):
     WaveEffect(prop_direction, wavefront_direction, wave_width, speed, duration, rectangle_size, wave_color, ColorF(0., 0., 0.)) {}
 
+WaveEffect::~WaveEffect() {}
+
 void WaveEffect::refresh() {
     float current_time = (float)millis() / 1000.;
     float progression = current_time / _duration;
