@@ -16,8 +16,6 @@ WaveEffect(
 WaveEffect::WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF wave_color, ColorF fixed_color):
     prop_dir(vec_from_angle(prop_direction)), wavefront_dir_90deg(vec_from_angle(wavefront_direction + 90.)), _wave_color(wave_color), _fixed_color(fixed_color) {
     Vec2f total_travel = prop_dir * duration * speed;
-    Serial.println(total_travel.x());
-    Serial.println(total_travel.y());
     Vec2f center = rectangle_size / 2.;
     start_pos = center - total_travel / 2;
     current_pos = start_pos;

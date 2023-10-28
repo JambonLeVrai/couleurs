@@ -56,7 +56,7 @@ bool SPIProcessor::processCycleEffect(uint8_t byte, uint8_t& current) {
         current++;
         current_cycle_effect_data.colors->push_back(color_from_rgb(current_cycle_effect_data.cur_r, current_cycle_effect_data.cur_g, current_cycle_effect_data.cur_b));
 
-        return (current-5) / 3 >= current_cycle_effect_data.nb_colors-1;
+        return (current-5) / 3 > current_cycle_effect_data.nb_colors-1;
     }
 }
 
@@ -75,15 +75,18 @@ bool SPIProcessor::processWaveEffect(uint8_t byte, uint8_t& current) {
 bool SPIProcessor::processCircularWaveEffect(uint8_t byte, uint8_t& current) {
     *((uint8_t*)(&current_circular_wave_effect_data) + current) = byte;
     current++;
-    return (current_byte == sizeof(CircularWaveEffectData));
+    //Serial.println(current);
+    return (current == sizeof(CircularWaveEffectData));
 }
 
 
 bool SPIProcessor::processCompoundEffect(uint8_t byte) {
     if(current_byte == 0) {
         current_compound_effect_data.nb_effects = byte;
+        Serial.println(current_compound_effect_data.nb_effects);
         current_compound_effect_data.current_effect_type = EMPTY_EFFECT;
         current_compound_effect_data.current_effect = 0;
+        current_byte++;
         return false;
     }
 
@@ -149,7 +152,7 @@ bool SPIProcessor::setNewEffect(uint8_t byte) {
             break;
 
         case EFFECT_COMPOUND:
-
+            return processCompoundEffect(byte);
             break;
     }
 
@@ -177,6 +180,7 @@ Effect* SPIProcessor::getRawEffect(uint8_t effect_type) {
 
         case EFFECT_COMPOUND:
             result = (Effect*)new CompoundEffect(current_compound_effect_data.effects);
+            current_compound_effect_data.effects.clear();
             break;
     }
     return result;
