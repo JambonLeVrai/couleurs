@@ -13,7 +13,7 @@ CircularWaveEffect::CircularWaveEffect(float wave_width, float speed, float dura
 void CircularWaveEffect::refresh() {
     float current_time = (float)millis() / 1000.;
     float progression = current_time / _duration;
-    current_radius = (progression - floorf(progression)) * max_radius;   
+    current_radius = (progression - floor(progression)) * max_radius;   
 }
 
 uint32_t CircularWaveEffect::get_color(Vec2f pos) {

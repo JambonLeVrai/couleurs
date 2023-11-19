@@ -3,7 +3,6 @@
 
 #include "tools.h"
 #include "effect.h"
-#include <ArduinoSTL.h>
 
 struct CompoundEffectData {
     uint8_t current_effect_type;
@@ -11,7 +10,7 @@ struct CompoundEffectData {
     uint8_t nb_effects;
     uint8_t local_byte;
     std::vector<Effect*> effects;
-};
+} __attribute__ ((packed));
 
 class CompoundEffect: public Effect {
     public:

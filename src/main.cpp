@@ -1,6 +1,9 @@
+#include "main.h"
+#include "stm32f4xx_hal_conf.h"
+#include "stm32f4xx_it.h"
+
 #include <Adafruit_NeoPixel.h>
-#include <ArduinoSTL.h>
-#include <SPI.h>
+//#include <SPI.h>
 #include "tools.h"
 #include "wave_effect.h"
 #include "cycle_effect.h"
@@ -8,17 +11,19 @@
 #include "compound_effect.h"
 #include "SPI_processor.h"
 
-#define PIN 2
+#define PIN PB1
 #define LED_COUNT 8
+#define BUFFER_SIZE 64
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, PIN, NEO_GRB + NEO_KHZ800);
 SPIProcessor spi_processor;
 
 uint8_t* buffer;
-uint8_t buffer_length = 0;
-uint8_t current_byte = 0;
+volatile bool started_receiving = false;
+uint16_t buffer_size = 0;
+uint16_t current_byte = 0;
 volatile byte pos;
-volatile boolean process_it;
+volatile bool process_it;
 
 Vec2f key_coords[8] = {
     Vec2f(0., 0.),
@@ -48,7 +53,7 @@ Effect *effect = new WaveEffect(-45., 45., 0.5, 3., 5., Vec2f(3., 3.), color_fro
 void colorSet(uint32_t c, uint8_t wait);
 
 // SPI interrupt routine
-ISR(SPI_STC_vect)
+/*ISR(SPI_STC_vect)
 {
     if (buffer_length == 0) {
         buffer_length = SPDR;
@@ -63,23 +68,152 @@ ISR(SPI_STC_vect)
             process_it = true;
         }
     }
+}*/
+
+
+uint8_t RX_Buffer[BUFFER_SIZE];
+SPI_HandleTypeDef hspi1;
+DMA_HandleTypeDef hdma_spi1_rx;
+
+
+/**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
+
+  /* USER CODE BEGIN SPI1_Init 0 */
+
+  /* USER CODE END SPI1_Init 0 */
+
+  /* USER CODE BEGIN SPI1_Init 1 */
+
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_SLAVE;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES_RXONLY;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_HARD_INPUT;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
+
+  /* USER CODE END SPI1_Init 2 */
+
 }
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
+}
+
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef * hspi) {
+    HAL_SPI_Receive_DMA(&hspi1, RX_Buffer, BUFFER_SIZE);
+
+    if(!started_receiving) {
+        memcpy(&buffer_size, &RX_Buffer, 2);
+        if(buffer_size == 0)
+            return;
+        else
+            started_receiving = true;
+        buffer = new uint8_t[buffer_size];
+        current_byte = 0;
+        if(buffer_size > 62) {
+            memcpy(buffer, &RX_Buffer[2], BUFFER_SIZE - 2);
+            current_byte += BUFFER_SIZE - 2;
+        }
+        else {
+            memcpy(buffer, &RX_Buffer[2], buffer_size);
+            started_receiving = false;
+            process_it = true;
+        }
+    }
+    else {
+        if(current_byte + BUFFER_SIZE >= buffer_size) {
+            memcpy(buffer + current_byte, &RX_Buffer[0], buffer_size - current_byte);
+            process_it = true;
+            started_receiving = false;
+        }
+        else {
+            memcpy(buffer + current_byte, &RX_Buffer[0], BUFFER_SIZE);
+            current_byte += BUFFER_SIZE;
+        }
+    }
+}
+
+int res;
+/*
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
+    if(HAL_SPI_GetError(hspi) == HAL_SPI_ERROR_OVR)
+        digitalWrite(PC13, LOW);
+}*/
+int reset_pin_state = 0;
 
 void setup()
 {
-    Serial.begin(9600);
-    Serial.println("hihi");
+    Serial.begin(115200);
+    started_receiving = false;
 
     // have to send on master in, *slave out*
-    pinMode(SS, INPUT_PULLUP);
-    pinMode(MOSI, OUTPUT);
-    pinMode(SCK, INPUT);
-    SPCR |= _BV(SPE);
-    SPI.attachInterrupt(); // allows SPI interrupt
+    /*pinMode(SS, INPUT_PULLUP);
+    pinMode(MOSI, INPUT);
+    pinMode(MISO, OUTPUT);
+    pinMode(SCK, INPUT);*/
+    //SPI.attachInterrupt(); // allows SPI interrupt
 
     strip.begin();
 
     strip.show(); // Initialize all pixels to 'off'
+
+    HAL_Init();
+    MX_GPIO_Init();
+    MX_DMA_Init();
+    MX_SPI1_Init();
+    HAL_SPI_Receive_DMA(&hspi1, RX_Buffer, BUFFER_SIZE);
+    //HAL_SPI_Receive_IT(&hspi1, RX_Buffer, BUFFER_SIZE);
+    
+    pinMode(PC13, OUTPUT);
+    digitalWrite(PC13, HIGH);
+
 
     pos = 0;
     process_it = false;
@@ -87,6 +221,10 @@ void setup()
 
 void loop()
 {
+    if(digitalRead(PB4) == HIGH)
+        HAL_SPI_DMAStop(&hspi1);
+        HAL_SPI_Receive_DMA(&hspi1, RX_Buffer, BUFFER_SIZE);
+
     effect->refresh();
     for (int i = 0; i < 8; i++)
     {
@@ -96,14 +234,14 @@ void loop()
 
     if (process_it)
     {
-        for(int i=0;i<buffer_length;i++) {
+        for(int i=0;i<buffer_size;i++) {
             if(spi_processor.receiveData(buffer[i])) {
                 delete effect;
                 effect = spi_processor.getEffect();
             }
         }
         process_it = false;
-        buffer_length = 0;
+        buffer_size = 0;
         delete[] buffer;
     }
 

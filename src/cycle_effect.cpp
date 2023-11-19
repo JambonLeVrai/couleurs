@@ -8,7 +8,7 @@ void CycleEffect::refresh() {
     int second_color_id = ((int)current_val + 1) % _colors->size();
     ColorF color1 = _colors->at(first_color_id);
     ColorF color2 = _colors->at(second_color_id);
-    float t = current_val - floorf(current_val);
+    float t = current_val - floor(current_val);
     current_color = color1 * (1-t) + color2 * t;
 }
 

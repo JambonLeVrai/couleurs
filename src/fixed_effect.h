@@ -6,7 +6,7 @@
 
 struct FixedEffectData {
     uint8_t R, G, B;
-};
+} __attribute__ ((packed));
 
 class FixedEffect: Effect {
     public: 

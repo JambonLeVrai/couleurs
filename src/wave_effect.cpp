@@ -33,7 +33,7 @@ WaveEffect::~WaveEffect() {}
 void WaveEffect::refresh() {
     float current_time = (float)millis() / 1000.;
     float progression = current_time / _duration;
-    float actual_distance = (progression - floorf(progression)) * _speed * _duration;
+    float actual_distance = (progression - floor(progression)) * _speed * _duration;
     current_pos = start_pos + (prop_dir * actual_distance);
 }
 

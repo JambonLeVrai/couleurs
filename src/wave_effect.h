@@ -20,7 +20,7 @@ struct WaveEffectData {
     uint8_t fixed_color_r;
     uint8_t fixed_color_g;
     uint8_t fixed_color_b;
-};
+} __attribute__ ((packed));
 
 class WaveEffect: public Effect {
     public:

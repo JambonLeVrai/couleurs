@@ -3,14 +3,13 @@
 
 #include "tools.h"
 #include "effect.h"
-#include <ArduinoSTL.h>
 
 struct CycleEffectData {
     uint8_t nb_colors;
     float color_duration;
     uint8_t cur_r, cur_g, cur_b;
     std::vector<ColorF>* colors;
-};
+} __attribute__ ((packed));
 
 class CycleEffect: public Effect {
     public:

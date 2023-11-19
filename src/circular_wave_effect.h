@@ -1,5 +1,5 @@
-#ifndef CIRCLUAR_WAVE_EFFECT_H
-#define CIRCLUAR_WAVE_EFFECT_H
+#ifndef CIRCULAR_WAVE_EFFECT_H
+#define CIRCULAR_WAVE_EFFECT_H
 
 #include "tools.h"
 #include "effect.h"
@@ -9,7 +9,7 @@ struct CircularWaveEffectData {
     float origin_x, origin_y;
     uint8_t wave_r, wave_g, wave_b;
     uint8_t fixed_r, fixed_g, fixed_b;
-};
+} __attribute__ ((packed));
 
 class CircularWaveEffect: public Effect {
     public:

@@ -75,7 +75,6 @@ bool SPIProcessor::processWaveEffect(uint8_t byte, uint8_t& current) {
 bool SPIProcessor::processCircularWaveEffect(uint8_t byte, uint8_t& current) {
     *((uint8_t*)(&current_circular_wave_effect_data) + current) = byte;
     current++;
-    //Serial.println(current);
     return (current == sizeof(CircularWaveEffectData));
 }
 
@@ -83,7 +82,6 @@ bool SPIProcessor::processCircularWaveEffect(uint8_t byte, uint8_t& current) {
 bool SPIProcessor::processCompoundEffect(uint8_t byte) {
     if(current_byte == 0) {
         current_compound_effect_data.nb_effects = byte;
-        Serial.println(current_compound_effect_data.nb_effects);
         current_compound_effect_data.current_effect_type = EMPTY_EFFECT;
         current_compound_effect_data.current_effect = 0;
         current_byte++;
@@ -125,6 +123,8 @@ bool SPIProcessor::processCompoundEffect(uint8_t byte) {
             }
             break;
     }
+
+    return false;
 }
 
 bool SPIProcessor::setNewEffect(uint8_t byte) {
