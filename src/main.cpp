@@ -234,7 +234,7 @@ void loop()
 
     if (process_it)
     {
-        for(int i=0;i<buffer_size;i++) {
+        /*for(int i=0;i<buffer_size;i++) {
             switch(spi_processor.receiveData(buffer[i])) {
                 case ProcessedType::NEW_EFFECT:
                     delete effect;
@@ -247,6 +247,20 @@ void loop()
                     effect->key_released(spi_processor.keyReleased());
                     break;
             }
+        }*/
+        switch(spi_processor.processData(buffer)) {
+            case ProcessedType::NEW_EFFECT:
+                delete effect;
+                effect = spi_processor.getEffect();
+                Serial.println("got new effect");
+                Serial.println((int)effect);
+                break;
+            case ProcessedType::KEY_PRESSED:
+                effect->key_pressed(spi_processor.keyPressed());
+                break;
+            case ProcessedType::KEY_RELEASED:
+                effect->key_released(spi_processor.keyReleased());
+                break;
         }
         process_it = false;
         buffer_size = 0;
