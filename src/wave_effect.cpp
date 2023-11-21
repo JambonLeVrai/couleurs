@@ -41,7 +41,7 @@ float WaveEffect::coeff_formula(float distance) {
     return exp(-(distance*distance)/width);
 }
 
-uint32_t WaveEffect::get_color(Vec2f pos) {
+uint32_t WaveEffect::get_color(Vec2f pos, uint8_t key_id) {
     float distance_to_wavefront = abs(Vec2f::dot(pos - current_pos, wavefront_dir_90deg));
     float coeff = coeff_formula(distance_to_wavefront);
     ColorF actual_color = _wave_color * coeff + _fixed_color * (1-coeff);

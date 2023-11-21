@@ -5,6 +5,10 @@ ColorF color_from_rgb(uint8_t R, uint8_t G, uint8_t B) {
     return ColorF((float)R / 255., (float)G / 255., (float)B / 255.);
 }
 
+ColorF color_from_rgb(ColorI c) {
+    return color_from_rgb(c.R, c.G, c.B);
+}
+
 uint8_t saturate(int i) {
     if (i > 255)
         return 255;

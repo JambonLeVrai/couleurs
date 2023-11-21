@@ -16,7 +16,7 @@ class CycleEffect: public Effect {
         CycleEffect(std::vector<ColorF>* colors, float color_duration);
         ~CycleEffect();
         void refresh();
-        uint32_t get_color(Vec2f pos);
+        uint32_t get_color(Vec2f pos, uint8_t key_id);
 
     private:
         float _color_duration;

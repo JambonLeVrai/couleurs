@@ -8,6 +8,9 @@
 #define PI 3.14159265359
 #endif
 
+#define KEYS 8
+#define LED_COUNT 8
+
 template <class T>
 class Vec2 {
     public:
@@ -93,11 +96,16 @@ class Vec3 {
 using Vec2f = Vec2<float>;
 using ColorF = Vec3<float>;
 
+struct ColorI {
+    uint8_t R, G, B;
+} __attribute__ ((packed));
+
 float deg_to_radians(float deg);
 float radians_to_deg(float radians);
 Vec2f vec_from_angle(float deg);
 
 ColorF color_from_rgb(uint8_t R, uint8_t G, uint8_t B);
+ColorF color_from_rgb(ColorI c);
 uint8_t saturate(int i);
 uint32_t color_to_rgb(ColorF const& color);
 

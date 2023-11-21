@@ -12,7 +12,7 @@ void CycleEffect::refresh() {
     current_color = color1 * (1-t) + color2 * t;
 }
 
-uint32_t CycleEffect::get_color(Vec2f pos) {
+uint32_t CycleEffect::get_color(Vec2f pos, uint8_t key_id) {
     return color_to_rgb(current_color);
 }
 

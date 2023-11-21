@@ -29,7 +29,7 @@ class WaveEffect: public Effect {
         WaveEffect(float prop_direction, float wavefront_direction, float wave_width, float speed, float duration, Vec2f rectangle_size, ColorF wave_color);
         ~WaveEffect();
         void refresh();
-        uint32_t get_color(Vec2f pos);
+        uint32_t get_color(Vec2f pos, uint8_t key_id);
         float coeff_formula(float distance);
         
 

@@ -4,6 +4,6 @@ FixedEffect::FixedEffect(FixedEffectData data): _col(Adafruit_NeoPixel::Color(da
 
 FixedEffect::FixedEffect(ColorF col): _col(color_to_rgb(col)) {}
 
-uint32_t FixedEffect::get_color(Vec2f pos) {
+uint32_t FixedEffect::get_color(Vec2f pos, uint8_t key_id) {
     return _col;
 }

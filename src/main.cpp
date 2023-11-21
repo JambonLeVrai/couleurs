@@ -12,7 +12,6 @@
 #include "SPI_processor.h"
 
 #define PIN PB1
-#define LED_COUNT 8
 #define BUFFER_SIZE 64
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, PIN, NEO_GRB + NEO_KHZ800);
@@ -25,7 +24,7 @@ uint16_t current_byte = 0;
 volatile byte pos;
 volatile bool process_it;
 
-Vec2f key_coords[8] = {
+Vec2f key_coords[KEYS] = {
     Vec2f(0., 0.),
     Vec2f(1., 0.),
     Vec2f(2., 0.),
@@ -221,23 +220,32 @@ void setup()
 
 void loop()
 {
-    if(digitalRead(PB4) == HIGH)
+    if(digitalRead(PB4) == HIGH) {
         HAL_SPI_DMAStop(&hspi1);
         HAL_SPI_Receive_DMA(&hspi1, RX_Buffer, BUFFER_SIZE);
+    }
 
     effect->refresh();
     for (int i = 0; i < 8; i++)
     {
-        strip.setPixelColor(i, effect->get_color(key_coords[i]));
+        strip.setPixelColor(i, effect->get_color(key_coords[i], (uint8_t)i));
     }
     strip.show();
 
     if (process_it)
     {
         for(int i=0;i<buffer_size;i++) {
-            if(spi_processor.receiveData(buffer[i])) {
-                delete effect;
-                effect = spi_processor.getEffect();
+            switch(spi_processor.receiveData(buffer[i])) {
+                case ProcessedType::NEW_EFFECT:
+                    delete effect;
+                    effect = spi_processor.getEffect();
+                    break;
+                case ProcessedType::KEY_PRESSED:
+                    effect->key_pressed(spi_processor.keyPressed());
+                    break;
+                case ProcessedType::KEY_RELEASED:
+                    effect->key_released(spi_processor.keyReleased());
+                    break;
             }
         }
         process_it = false;

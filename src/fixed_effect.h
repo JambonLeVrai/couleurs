@@ -12,7 +12,7 @@ class FixedEffect: Effect {
     public: 
         FixedEffect(FixedEffectData data);
         FixedEffect(ColorF col);
-        uint32_t get_color(Vec2f pos);
+        uint32_t get_color(Vec2f pos, uint8_t key_id);
 
     private:
         uint32_t _col;

@@ -17,7 +17,9 @@ class CompoundEffect: public Effect {
     CompoundEffect(std::vector<Effect*> effects);
     ~CompoundEffect();
     void refresh();
-    uint32_t get_color(Vec2f pos);
+    uint32_t get_color(Vec2f pos, uint8_t key_id);
+    void key_pressed(uint8_t key_id);
+    void key_released(uint8_t key_id);
 
     private:
     std::vector<Effect*> _effects;

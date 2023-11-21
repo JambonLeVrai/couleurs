@@ -7,25 +7,48 @@ SPIProcessor::SPIProcessor() {
     state = 0;
 }
 
-bool SPIProcessor::receiveData(uint8_t byte) {
+ProcessedType SPIProcessor::receiveData(uint8_t byte) {
     if (current_command == EMPTY_COMMAND) {
         current_command = byte;
-        return false;
+        return ProcessedType::NONE;
     }
 
     switch(current_command) {
         case COMMAND_SET_NEW_EFFECT:
-            return setNewEffect(byte);
+            if(setNewEffect(byte))
+                return ProcessedType::NEW_EFFECT;
             break;
         case COMMAND_KEY_PRESSED:
-
+            if(setKeyPressed(byte))
+                return ProcessedType::KEY_PRESSED;
             break;
         case COMMAND_KEY_RELEASED:
-
+            if(setKeyReleased(byte))
+                return ProcessedType::KEY_RELEASED;
             break;
     }
 
-    return false;
+    return ProcessedType::NONE;
+}
+
+bool SPIProcessor::setKeyPressed(uint8_t byte) {
+    pressed_key_code = byte;
+    return true;
+}
+
+bool SPIProcessor::setKeyReleased(uint8_t byte) {
+    released_key_code = byte;
+    return true;
+}
+
+uint8_t SPIProcessor::keyPressed() {
+    current_command = EMPTY_COMMAND;
+    return pressed_key_code;
+}
+
+uint8_t SPIProcessor::keyReleased() {
+    current_command = EMPTY_COMMAND;
+    return released_key_code;
 }
 
 bool SPIProcessor::processCycleEffect(uint8_t byte, uint8_t& current) {
@@ -78,6 +101,34 @@ bool SPIProcessor::processCircularWaveEffect(uint8_t byte, uint8_t& current) {
     return (current == sizeof(CircularWaveEffectData));
 }
 
+bool SPIProcessor::processFixedPatternEffect(uint8_t byte, uint8_t& current) {
+    if(current == 0)
+        current_fixed_pattern_effect_data.clear();
+
+    switch(current % 3) {
+        case 0:
+            current_fixed_pattern_effect_data.push_back(ColorI());
+            current_fixed_pattern_effect_data.back().R = byte;
+            break;
+        case 1:
+            current_fixed_pattern_effect_data.back().G = byte;
+            break;
+        case 2:
+            current_fixed_pattern_effect_data.back().B = byte;
+            break;
+    }
+    current++;
+    Serial.println(current);
+    return (current == KEYS*3);
+}
+
+
+bool SPIProcessor::processPersistenceEffect(uint8_t byte, uint8_t& current) {
+    *((uint8_t*)(&current_persistence_effect_data) + current) = byte;
+    current++;
+    return (current == sizeof(PersistenceEffectData));
+}
+
 
 bool SPIProcessor::processCompoundEffect(uint8_t byte) {
     if(current_byte == 0) {
@@ -122,6 +173,20 @@ bool SPIProcessor::processCompoundEffect(uint8_t byte) {
                 return ++current_compound_effect_data.current_effect == current_compound_effect_data.nb_effects;
             }
             break;
+        case EFFECT_FIXED_PATTERN:
+            if(processFixedPatternEffect(byte, current_compound_effect_data.local_byte)) {
+                current_compound_effect_data.effects.push_back(getRawEffect(current_compound_effect_data.current_effect_type));
+                current_compound_effect_data.current_effect_type = EMPTY_EFFECT;
+                return ++current_compound_effect_data.current_effect == current_compound_effect_data.nb_effects;
+            }
+            break;
+        case EFFECT_PERSISTENCE:
+            if(processPersistenceEffect(byte, current_compound_effect_data.local_byte)) {
+                current_compound_effect_data.effects.push_back(getRawEffect(current_compound_effect_data.current_effect_type));
+                current_compound_effect_data.current_effect_type = EMPTY_EFFECT;
+                return ++current_compound_effect_data.current_effect == current_compound_effect_data.nb_effects;
+            }
+            break;
     }
 
     return false;
@@ -154,6 +219,14 @@ bool SPIProcessor::setNewEffect(uint8_t byte) {
         case EFFECT_COMPOUND:
             return processCompoundEffect(byte);
             break;
+
+        case EFFECT_FIXED_PATTERN:
+            return processFixedPatternEffect(byte, current_byte);
+            break;
+
+        case EFFECT_PERSISTENCE:
+            return processPersistenceEffect(byte, current_byte);
+            break;
     }
 
 }
@@ -181,6 +254,14 @@ Effect* SPIProcessor::getRawEffect(uint8_t effect_type) {
         case EFFECT_COMPOUND:
             result = (Effect*)new CompoundEffect(current_compound_effect_data.effects);
             current_compound_effect_data.effects.clear();
+            break;
+
+        case EFFECT_FIXED_PATTERN:
+            result = (Effect*)new FixedPatternEffect(current_fixed_pattern_effect_data);
+            break;
+
+        case EFFECT_PERSISTENCE:
+            result = (Effect*)new PersistenceEffect(current_persistence_effect_data);
             break;
     }
     return result;

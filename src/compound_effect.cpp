@@ -12,12 +12,24 @@ void CompoundEffect::refresh() {
         it->refresh();
 }
 
-uint32_t CompoundEffect::get_color(Vec2f pos) {
+uint32_t CompoundEffect::get_color(Vec2f pos, uint8_t key_id) {
     ColorF result(0., 0., 0.);
     uint32_t this_color;
     for(auto& it: _effects) {
-        this_color = it->get_color(pos);
+        this_color = it->get_color(pos, key_id);
         result += color_from_rgb((uint8_t)(this_color >> 16), (uint8_t)(this_color >> 8), (uint8_t)this_color);
     }
     return color_to_rgb(result);
+}
+
+void CompoundEffect::key_pressed(uint8_t key_code) {
+    for(auto& it: _effects) {
+        it->key_pressed(key_code);
+    }
+}
+
+void CompoundEffect::key_released(uint8_t key_code) {
+    for(auto& it: _effects) {
+        it->key_pressed(key_code);
+    }
 }
